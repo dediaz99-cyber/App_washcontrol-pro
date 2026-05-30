@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WASH CONTROL PRO</title>
+    <!-- SheetJS para generar archivos de Excel reales desde el celular -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #0066cc;
+            --success: #2b8a3e;
+            --danger: #c92a2a;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --warning: #e67e22;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f1f3f5; color: var(--dark); padding: 12px; padding-bottom: 40px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        h2 { text-align: center; margin: 15px 0; color: #0b7285; font-size: 1.6rem; text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Tarjetas de Interfaz */
+        .card { background: white; padding: 18px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 0.9rem; color: #495057; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 1rem; -webkit-appearance: none; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(0,102,204,0.15); }
+        
+        /* Módulo de Seguridad Destacado */
+        .security-box { border: 2px dashed var(--warning); padding: 12px; border-radius: 10px; background-color: #fff9db; }
+        .security-box label { color: #d9480f; }
+
+        /* Botones */
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: white; display: block; text-align: center; text-decoration: none; margin-top: 8px; transition: background 0.2s; }
+        .btn-primary { background-color: var(--primary); }
+        .btn-primary:active { background-color: #004c99; }
+        .btn-success { background-color: var(--success); }
+        .btn-success:active { background-color: #237032; }
+        .btn-danger { background-color: var(--danger); padding: 6px 12px; width: auto; font-size: 0.85rem; border-radius: 6px; }
+        
+        /* Resumen de Caja */
+        .grid-resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .box-resumen { background: #fff; padding: 12px; text-align: center; border-radius: 10px; border-left: 5px solid var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .box-resumen.caja { border-left-color: var(--success); }
+        .box-resumen span { display: block; font-size: 0.85rem; color: #868e96; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+        .box-resumen strong { font-size: 1.3rem; color: var(--dark); }
+
+        /* Listado de vehículos */
+        .lista-titulo { font-size: 1.05rem; margin-bottom: 12px; color: #343a40; font-weight: bold; display: flex; justify-content: space-between; }
+        .item-vehiculo { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e9ecef; font-size: 0.95rem; }
+        .item-vehiculo:last-child { border-bottom: none; }
+        .placa-badge { background: #fcc419; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 1rem; color: #212529; display: inline-block; margin-bottom: 4px; }
+        .info-secundaria { color: #666; font-size: 0.85rem; line-height: 1.3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🧼 WASH CONTROL PRO</h2>
+
+    <!-- RESUMEN EN TIEMPO REAL -->
+    <div class="grid-resumen">
+        <div class="box-resumen">
+            <span>Vehículos Hoy</span>
+            <strong id="total-vehiculos">0</strong>
+        </div>
+        <div class="box-resumen caja">
+            <span>Recaudo Total</span>
+            <strong id="total-dinero">$0</strong>
+        </div>
+    </div>
+
+    <!-- FORMULARIO DE INGRESO (Encargado de Ingreso) -->
+    <div class="card">
+        <form id="form-lavadero" onsubmit="registrarVehiculo(event)">
+            <div class="form-group">
+                <label for="placa">Placa del Vehículo</label>
+                <input type="text" id="placa" placeholder="Ej: XYZ123 o CCV87G" required style="text-transform: uppercase;">
+            </div>
+            <div class="form-group">
+                <label for="cliente">Nombre del Cliente</label>
+                <input type="text" id="cliente" placeholder="Nombre del propietario" required>
+            </div>
+            <div class="form-group">
+                <label for="celular">Número de Celular</label>
+                <input type="tel" id="celular" placeholder="Ej: 3101234567" required>
+            </div>
+            <div class="form-group">
+                <label for="tipo-vehiculo">Tipo de Vehículo</label>
+                <select id="tipo-vehiculo" onchange="actualizarPrecio()" required>
+                    <option value="">Seleccione...</option>
+                    <option value="Moto">Motocicleta / Moto</option>
+                    <option value="Sedan">Automóvil (Sedán / Hatchback)</option>
+                    <option value="Camioneta">Camioneta / SUV / Platón</option>
+                    <option value="Wagon_Van">Wagon / Vans de Carga</option>
+                    <option value="Camion_Turbo">Camión Pequeño (Turbo)</option>
+                    <option value="Camion_Grande">Camión Grande / Pesado</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="servicio">Tipo de Servicio</label>
+                <select id="servicio" onchange="actualizarPrecio()" required>
+                    <option value="">Seleccione...</option>
+                    <option value="Enjuague">Enjuague básico</option>
+                    <option value="Abajo">Enjuague + Por Debajo</option>
+                    <option value="Motor">Enjuague + Abajo + Motor</option>
+                    <option value="Premium">Lavado Premium</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="valor">Valor a Cancelar ($)</label>
+                <input type="number" id="valor" required>
+            </div>
+            <div class="form-group">
+                <label for="operario">Operario / Lavador Asignado</label>
+                <select id="operario" required>
+                    <option value="">Seleccione lavador...</option>
+                    <option value="Carlos">Carlos</option>
+                    <option value="Luis">Luis</option>
+                    <option value="Andrés">Andrés</option>
+                    <option value="Operario_General">Operario General</option>
+                </select>
+            </div>
+            
+            <!-- MÓDULO DE SEGURIDAD: OBJETOS DE VALOR -->
+            <div class="form-group security-box">
+                <label for="objetos-valor">🛡️ Inventario / Objetos de Valor</label>
+                <input type="text" id="objetos-valor" placeholder="Ej: Maletín atrás, celular consola. Si va cerrado: Vehículo cerrado" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Registrar Ingreso y Turno</button>
+        </form>
+    </div>
+
+    <!-- ACCIONES DE CIERRE (Solo Dueño) -->
+    <button onclick="exportarExcel()" class="btn btn-success">📥 Descargar Jornada en Excel</button>
+    <button onclick="reiniciarJornada()" class="btn btn-danger" style="width: 100%; padding: 10px; margin-top: 15px; margin-bottom: 25px; opacity: 0.65;">⚠️ Reiniciar Jornada (Solo Dueño)</button>
+
+    <!-- LISTADO DEL DÍA -->
+    <div class="card">
+        <div class="lista-titulo">
+            <span>Movimientos de Hoy:</span>
+        </div>
+        <div id="lista-registros">
+            <!-- Los registros se cargan dinámicamente -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // MATRIZ DE TARIFAS CONFIGURABLE (Personalizable por el cliente)
+    const tarifas = {
+        "Moto":          { "Enjuague": 12000, "Abajo": 15000, "Motor": 18000, "Premium": 25000 },
+        "Sedan":         { "Enjuague": 20000, "Abajo": 25000, "Motor": 30000, "Premium": 45000 },
+        "Camioneta":     { "Enjuague": 28000, "Abajo": 35000, "Motor": 40000, "Premium": 60000 },
+        "Wagon_Van":     { "Enjuague": 30000, "Abajo": 40000, "Motor": 45000, "Premium": 65000 },
+        "Camion_Turbo":  { "Enjuague": 45000, "Abajo": 60000, "Motor": 70000, "Premium": 90000 },
+        "Camion_Grande": { "Enjuague": 70000, "Abajo": 95000, "Motor": 110000, "Premium": 150000 }
+    };
+
+    let registros = JSON.parse(localStorage.getItem('wash_control_data')) || [];
+
+    // Actualiza automáticamente el precio sugerido
+    function actualizarPrecio() {
+        const tipo = document.getElementById('tipo-vehiculo').value;
+        const servicio = document.getElementById('servicio').value;
+        const inputValor = document.getElementById('valor');
+
+        if (tipo && servicio && tarifas[tipo] && tarifas[tipo][servicio]) {
+            inputValor.value = tarifas[tipo][servicio];
+        }
+    }
+
+    // Registrar el vehículo (Encargado de Ingreso)
+    function registrarVehiculo(e) {
+        e.preventDefault();
+        
+        const fechaActual = new Date();
+        const horaFormateada = fechaActual.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const fechaFormateada = fechaActual.toLocaleDateString();
+
+        const nuevoRegistro = {
+            fecha: fechaFormateada,
+            hora: horaFormateada,
+            turno: registros.length + 1,
+            placa: document.getElementById('placa').value.toUpperCase().replace(/\s+/g, ''),
+            cliente: document.getElementById('cliente').value,
+            celular: document.getElementById('celular').value,
+            tipoVehiculo: document.getElementById('tipo-vehiculo').value,
+            servicio: document.getElementById('servicio').value,
+            valor: parseFloat(document.getElementById('valor').value),
+            operario: document.getElementById('operario').value,
+            objetosValor: document.getElementById('objetos-valor').value,
+            comision: parseFloat(document.getElementById('valor').value) * 0.35 // 35% de comisión base fija
+        };
+
+        registros.push(nuevoRegistro);
+        localStorage.setItem('wash_control_data', JSON.stringify(registros));
+        
+        document.getElementById('form-lavadero').reset();
+        actualizarInterfaz();
+    }
+
+    // Eliminar un registro (Solo Autorizado por el Dueño)
+    function eliminarRegistro(index) {
+        if(confirm("🛠️ ACCIÓN RESTRINGIDA AL DUEÑO\n\n¿Confirma que está autorizado para eliminar este turno? La caja se recalculará.")) {
+            registros.splice(index, 1);
+            // Reorganizar los turnos del día
+            registros.forEach((reg, i) => reg.turno = i + 1);
+            localStorage.setItem('wash_control_data', JSON.stringify(registros));
+            actualizarInterfaz();
+        }
+    }
+
+    // Sincronizar la interfaz visual del celular
+    function actualizarInterfaz() {
+        const lista = document.getElementById('lista-registros');
+        const totalVehiculos = document.getElementById('total-vehiculos');
+        const totalDinero = document.getElementById('total-dinero');
+        
+        lista.innerHTML = '';
+        let sumaDinero = 0;
+
+        // Mostrar del más nuevo al más viejo
+        for (let i = registros.length - 1; i >= 0; i--) {
+            const reg = registros[i];
+            sumaDinero += reg.valor;
+
+            lista.innerHTML += `
+                <div class="item-vehiculo">
+                    <div>
+                        <span class="placa-badge">${reg.placa}</span> <br>
+                        <span class="info-secundaria">
+                            <strong>Servicio:</strong> ${reg.servicio} (${reg.tipoVehiculo})<br>
+                            <strong>Lavador:</strong> ${reg.operario} | ⏱️ ${reg.hora}<br>
+                            <strong style="color: #d9480f;">🛡️ Ítems:</strong> ${reg.objetosValor}
+                        </span>
+                    </div>
+                    <div style="text-align: right; min-width: 90px;">
+                        <strong style="font-size: 1.05rem;">$${reg.valor.toLocaleString()}</strong> <br><br>
+                        <button onclick="eliminarRegistro(${i})" class="btn-danger">Eliminar</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        totalVehiculos.innerText = registros.length;
+        totalDinero.innerText = '$' + sumaDinero.toLocaleString();
+    }
+
+    // Exportar datos a un archivo de Excel Real (Solo Dueño)
+    function exportarExcel() {
+        if(registros.length === 0) {
+            alert("No hay registros en la jornada actual para exportar.");
+            return;
+        }
+
+        const datosExcel = registros.map(reg => ({
+            "Fecha": reg.fecha,
+            "Hora Ingreso": reg.hora,
+            "Turno": reg.turno,
+            "Placa": reg.placa,
+            "Cliente": reg.cliente,
+            "Celular": reg.celular,
+            "Tipo Vehículo": reg.tipoVehiculo,
+            "Servicio": reg.servicio,
+            "Valor Recaudado ($)": reg.valor,
+            "Operario / Lavador": reg.operario,
+            "Comisión Lavador (35%)": reg.comision,
+            "Inventario / Objetos de Valor": reg.objetosValor
+        }));
+
+        const hoja = XLSX.utils.json_to_sheet(datosExcel);
+        const libro = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(libro, hoja, "Cierre de Caja");
+        
+        const fechaArchivo = new Date().toISOString().slice(0,10);
+        XLSX.writeFile(libro, `WASH_CONTROL_Caja_${fechaArchivo}.xlsx`);
+    }
+
+    // Resetear el día (Solo Dueño)
+    function reiniciarJornada() {
+        if(confirm("🚨 ¡ALERTA DE SEGURIDAD DEL DUEÑO!\n\n¿Está completamente seguro de borrar los datos? Esta acción dejará la pantalla en ceros para el siguiente turno. Asegúrese de haber descargado el Excel primero.")) {
+            registros = [];
+            localStorage.removeItem('wash_control_data');
+            actualizarInterfaz();
+        }
+    }
+
+    // Cargar la base de datos local al abrir
+    actualizarInterfaz();
+</script>
+
+</body>
+</html>
