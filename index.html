@@ -6,13 +6,7 @@
     <title>WASH CONTROL PRO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --primary: #0066cc;
-            --success: #2b8a3e;
-            --danger: #c92a2a;
-            --dark: #212529;
-            --light: #f8f9fa;
-        }
+        :root { --primary: #0066cc; --success: #2b8a3e; --danger: #c92a2a; --dark: #212529; --light: #f8f9fa; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #e9ecef; color: var(--dark); padding: 10px; padding-bottom: 30px; }
         .container { max-width: 500px; margin: 0 auto; }
@@ -60,7 +54,7 @@
         <form id="form-lavadero">
             <div class="form-group">
                 <label>Placa del Vehículo</label>
-                <input type="text" id="placa" placeholder="EJ: XYZ123 O CCV87G" required style="text-transform: uppercase;">
+                <input type="text" id="placa" placeholder="EJ: XYZ123" required style="text-transform: uppercase;">
             </div>
             <div class="form-group">
                 <label>Nombre del Cliente</label>
@@ -93,14 +87,15 @@
                 <label>Operario / Lavador Asignado</label>
                 <select id="operario" required>
                     <option value="">Seleccione lavador...</option>
-                    <option value="Luis I.">Luis I.</option>
-                    <option value="Carlos M.">Carlos M.</option>
-                    <option value="Andrés P.">Andrés P.</option>
+                    <option value="Lavador 1">Lavador 1</option>
+                    <option value="Lavador 2">Lavador 2</option>
+                    <option value="Lavador 3">Lavador 3</option>
+                    <option value="Lavador 4">Lavador 4</option>
                 </select>
             </div>
             <div class="alert-box">
                 <label style="color: #d9480f; display: flex; align-items: center; gap: 4px;">🛡️ Inventario / Objetos de Valor</label>
-                <input type="text" id="objetos-valor" placeholder="Ej: Maletín atrás, celular consola." required>
+                <input type="text" id="objetos-valor" placeholder="Ej: Ninguno / Maletín en baúl." required>
             </div>
 
             <button type="button" class="btn btn-primary" onclick="registrarTurno()">Registrar Ingreso y Turno</button>
@@ -112,13 +107,11 @@
 
     <div class="card">
         <div class="records-title">Movimientos de Hoy:</div>
-        <div id="lista-registros">
-            </div>
+        <div id="lista-registros"></div>
     </div>
 </div>
 
 <script>
-    // MATRIZ DE TARIFAS CONFIGURABLE (Personalizable por el cliente)
     const tarifas = {
         "Moto":       { "Enjuague": 12000, "Abajo": 15000, "Motor": 18000, "De primera calidad": 25000 },
         "Sedán":      { "Enjuague": 20000, "Abajo": 25000, "Motor": 30000, "De primera calidad": 45000 },
@@ -129,12 +122,10 @@
         const tipo = document.getElementById('tipo-vehiculo').value;
         const servicioSelect = document.getElementById('servicio');
         servicioSelect.innerHTML = '<option value="">Seleccione...</option>';
-        
         if(tipo && tarifas[tipo]) {
             for(let serv in tarifas[tipo]) {
                 let opt = document.createElement('option');
-                opt.value = serv;
-                opt.textContent = serv;
+                opt.value = serv; opt.textContent = serv;
                 servicioSelect.appendChild(opt);
             }
         }
@@ -156,7 +147,6 @@
             alert("Por favor complete todos los campos obligatorios.");
             return;
         }
-
         const ahora = new Date();
         const horaFormateada = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true});
 
@@ -176,15 +166,13 @@
 
         registros.push(nuevoRegistro);
         localStorage.setItem('datos_control_lavado', JSON.stringify(registros));
-
         document.getElementById('form-lavadero').reset();
         actualizarInterfaz();
     }
 
     function eliminarRegistro(indice) {
-        if(confirm("🔑 ACCIÓN RESTRINGIDA AL DUEÑO\n\n¿Confirma que está autorizado para eliminar este turno? La caja se recalculará.")) {
+        if(confirm("🔑 ACCIÓN RESTRINGIDA AL DUEÑO\n\n¿Confirma la eliminación?")) {
             registros.splice(indice, 1);
-            // Reajustar números de turno correlativos
             registros.forEach((reg, i) => reg.turno = i + 1);
             localStorage.setItem('datos_control_lavado', JSON.stringify(registros));
             actualizarInterfaz();
@@ -192,25 +180,21 @@
     }
 
     function reiniciarJornada() {
-        if(confirm("🚨 ¡ATENCIÓN DUEÑO!\n\n¿Está seguro de que desea BORRAR por completo la jornada actual y cerrar la caja? Asegúrese de haber descargado el reporte de Excel primero.")) {
-            if(confirm("¿Confirmación final? Esta acción vaciará el panel principal.")) {
-                registros = [];
-                localStorage.removeItem('datos_control_lavado');
-                actualizarInterfaz();
-            }
+        if(confirm("🚨 ¿Borrar por completo la jornada actual?")) {
+            registros = [];
+            localStorage.removeItem('datos_control_lavado');
+            actualizarInterfaz();
         }
     }
 
     function actualizarInterfaz() {
         const lista = document.getElementById('lista-registros');
         lista.innerHTML = '';
-        
         let totalRecaudo = 0;
         document.getElementById('count-hoy').textContent = registros.length;
 
         registros.forEach((reg, index) => {
             totalRecaudo += reg.valor;
-
             const item = document.createElement('div');
             item.className = 'record-item';
             item.innerHTML = `
@@ -227,39 +211,23 @@
             `;
             lista.appendChild(item);
         });
-
         document.getElementById('recaudo-hoy').textContent = '$' + totalRecaudo.toLocaleString();
     }
 
     function exportarExcel() {
-        if(registros.length === 0) {
-            alert("No hay registros en la jornada de hoy para exportar.");
-            return;
-        }
-
+        if(registros.length === 0) { alert("No hay registros hoy."); return; }
         const datosFormateados = registros.map(reg => ({
-            "Turno": reg.turno,
-            "Hora Ingreso": reg.hora,
-            "Placa": reg.placa,
-            "Cliente": reg.cliente,
-            "Celular": reg.celular,
-            "Tipo de Vehículo": reg.tipoVehiculo,
-            "Servicio Solicitado": reg.servicio,
-            "Valor Pagado ($)": reg.valor,
-            "Lavador Asignado": reg.operario,
-            "Inventario / Objetos Valor": reg.objetosValor,
+            "Turno": reg.turno, "Hora Ingreso": reg.hora, "Placa": reg.placa, "Cliente": reg.cliente,
+            "Celular": reg.celular, "Tipo de Vehículo": reg.tipoVehiculo, "Servicio Solicitado": reg.servicio,
+            "Valor Pagado ($)": reg.valor, "Lavador Asignado": reg.operario, "Inventario / Objetos Valor": reg.objetosValor,
             "Comisión Lavador": reg.comision
         }));
-
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(datosFormateados);
-        
         XLSX.utils.book_append_sheet(wb, ws, "Jornada_Lavado");
-        
         const fecha = new Date().toISOString().slice(0,10);
         XLSX.writeFile(wb, `Reporte_WashControlPro_${fecha}.xlsx`);
     }
 </script>
-
 </body>
 </html>
