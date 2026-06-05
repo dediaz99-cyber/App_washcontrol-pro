@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WASH CONTROL PRO</title>
+    
+    <!-- Enlace al ícono oficial para el acceso directo en celulares (Android e iPhone) -->
+    <link rel="icon" type="image/jpeg" href="head.jpg">
+    <link rel="apple-touch-icon" href="head.jpg">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { --primary: #0066cc; --success: #2b8a3e; --danger: #c92a2a; --dark: #212529; --light: #f8f9fa; }
@@ -134,7 +139,7 @@
             for(let serv in tarifas[tipo]) {
                 let opt = document.createElement('option');
                 opt.value = serv;
-                // Si es Moto y el servicio es Motor, se muestra el aviso visual en la lista
+                // Si es Moto y el servicio es Motor, se muestra explícitamente el N/A
                 if (tipo === "Moto" && serv === "Motor") {
                     opt.textContent = "Motor (N/A)";
                 } else {
@@ -152,7 +157,7 @@
         
         if(tipo && serv && tarifas[tipo]) {
             const precioVal = tarifas[tipo][serv];
-            // Validación específica si se intenta seleccionar el servicio de Motor para Motos
+            // Validación de seguridad para lavado de motor en motocicletas
             if (tipo === "Moto" && serv === "Motor") {
                 document.getElementById('valor').value = 0;
                 alert("❌ Servicio de Motor no disponible para Motocicletas.");
