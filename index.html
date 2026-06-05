@@ -71,6 +71,9 @@
                     <option value="Moto">Motocicleta / Moto</option>
                     <option value="Sedán">Automóvil Sedán</option>
                     <option value="Camioneta">Camioneta / SUV</option>
+                    <option value="Van">Van</option>
+                    <option value="Camión Pequeño">Camión Pequeño</option>
+                    <option value="Camión Grande">Camión Grande</option>
                 </select>
             </div>
             <div class="form-group">
@@ -112,30 +115,50 @@
 </div>
 
 <script>
+    // Matriz completa con las tarifas definitivas actualizadas
     const tarifas = {
-        "Moto":       { "Enjuague": 12000, "Abajo": 15000, "Motor": 18000, "De primera calidad": 25000 },
-        "Sedán":      { "Enjuague": 20000, "Abajo": 25000, "Motor": 30000, "De primera calidad": 45000 },
-        "Camioneta":  { "Enjuague": 25000, "Abajo": 35000, "Motor": 40000, "De primera calidad": 60000 }
+        "Moto":           { "Enjuague": 20000, "Abajo": 30000, "Motor": 0, "De primera calidad": 45000 },
+        "Sedán":          { "Enjuague": 25000, "Abajo": 55000, "Motor": 80000, "De primera calidad": 135000 },
+        "Camioneta":      { "Enjuague": 35000, "Abajo": 65000, "Motor": 100000, "De primera calidad": 150000 },
+        "Van":            { "Enjuague": 45000, "Abajo": 75000, "Motor": 120000, "De primera calidad": 170000 },
+        "Camión Pequeño": { "Enjuague": 60000, "Abajo": 85000, "Motor": 150000, "De primera calidad": 200000 },
+        "Camión Grande":  { "Enjuague": 80000, "Abajo": 100000, "Motor": 180000, "De primera calidad": 250000 }
     };
 
     function cargarServicios() {
         const tipo = document.getElementById('tipo-vehiculo').value;
         const servicioSelect = document.getElementById('servicio');
         servicioSelect.innerHTML = '<option value="">Seleccione...</option>';
+        
         if(tipo && tarifas[tipo]) {
             for(let serv in tarifas[tipo]) {
                 let opt = document.createElement('option');
-                opt.value = serv; opt.textContent = serv;
+                opt.value = serv;
+                // Si es Moto y el servicio es Motor, se muestra el aviso visual en la lista
+                if (tipo === "Moto" && serv === "Motor") {
+                    opt.textContent = "Motor (N/A)";
+                } else {
+                    opt.textContent = serv;
+                }
                 servicioSelect.appendChild(opt);
             }
         }
+        document.getElementById('valor').value = '';
     }
 
     function asignarPrecio() {
         const tipo = document.getElementById('tipo-vehiculo').value;
         const serv = document.getElementById('servicio').value;
-        if(tipo && serv && tarifas[tipo][serv]) {
-            document.getElementById('valor').value = tarifas[tipo][serv];
+        
+        if(tipo && serv && tarifas[tipo]) {
+            const precioVal = tarifas[tipo][serv];
+            // Validación específica si se intenta seleccionar el servicio de Motor para Motos
+            if (tipo === "Moto" && serv === "Motor") {
+                document.getElementById('valor').value = 0;
+                alert("❌ Servicio de Motor no disponible para Motocicletas.");
+            } else {
+                document.getElementById('valor').value = precioVal;
+            }
         }
     }
 
@@ -167,6 +190,7 @@
         registros.push(nuevoRegistro);
         localStorage.setItem('datos_control_lavado', JSON.stringify(registros));
         document.getElementById('form-lavadero').reset();
+        document.getElementById('servicio').innerHTML = '<option value="">Seleccione...</option>';
         actualizarInterfaz();
     }
 
