@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WASH CONTROL PRO</title>
     
-    <!-- Enlace al ícono oficial para el acceso directo en celulares (Android e iPhone) -->
+    <!-- Etiquetas de enlace blindadas para forzar el icono del carrito en el acceso directo celular -->
     <link rel="icon" type="image/jpeg" href="head.jpg">
+    <link rel="icon" type="image/jpg" href="head.jpg">
+    <link rel="shortcut icon" type="image/jpeg" href="head.jpg">
+    <link rel="shortcut icon" type="image/jpg" href="head.jpg">
+    
+    <!-- Configuración e icono exclusivo para Apple / Safari (iPhone) -->
     <link rel="apple-touch-icon" href="head.jpg">
+    <link rel="apple-touch-icon" type="image/jpeg" href="head.jpg">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -176,7 +182,7 @@
             return;
         }
         const ahora = new Date();
-        const horaFormateada = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true});
+        const horaFormateada = Clinical = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true});
 
         const nuevoRegistro = {
             hora: horaFormateada,
