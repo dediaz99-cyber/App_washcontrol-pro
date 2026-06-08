@@ -53,7 +53,18 @@
             </div>
             <div class="form-group"><label>Tipo de Servicio</label><select id="servicio" required onchange="asignarPrecio()"><option value="">Seleccione...</option></select></div>
             <div class="form-group"><label>Valor a Cancelar ($)</label><input type="number" id="valor" required></div>
-            <div class="form-group"><label>Operario / Lavador Asignado</label><input type="text" id="operario" placeholder="Nombre del lavador" required></div>
+            
+            <div class="form-group">
+                <label>Operario / Lavador Asignado</label>
+                <select id="operario" required>
+                    <option value="">Seleccione lavador...</option>
+                    <option value="Lavador 1">Lavador 1</option>
+                    <option value="Lavador 2">Lavador 2</option>
+                    <option value="Lavador 3">Lavador 3</option>
+                    <option value="Lavador 4">Lavador 4</option>
+                </select>
+            </div>
+            
             <div class="alert-box"><label style="color: #d9480f;">🛡️ Inventario / Objetos de Valor</label><input type="text" id="objetos-valor" placeholder="Ej: Gafas, maleta en baúl" required></div>
             <button type="button" class="btn btn-primary" onclick="registrarTurno()">Registrar Ingreso</button>
         </form>
@@ -119,7 +130,7 @@
         const data = registros.map(r => [r.turno, r.hora, r.placa, r.cliente, r.celular, r.tipoVehiculo, r.servicio, r.valor, r.operario, r.objetosValor]);
         data.unshift(["Turno", "Fecha y Hora Ingreso", "Placa", "Cliente", "Celular", "Tipo de Vehículo", "Servicio Solicitado", "Valor Pagado ($)", "Lavador Asignado", "Inventario / Objetos Valor"]);
         const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Jornada");
-        XLSX.writeFile(wb, `Reporte_Estandar_${new Date().toISOString().slice(0,10)}.xlsx`);
+        XXLSX.writeFile(wb, `Reporte_Estandar_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
     actualizarInterfaz();
 </script>
